@@ -1,74 +1,74 @@
 ## SRVPro
-一个YGOPro服务器。
+A YGOPro server.
 
-现用于[萌卡](https://mycard.moe/)，[YGOPro 233服](https://ygo233.com/)和[YGOPro Koishi服](http://koishi.222diy.gdn/)。
+Now used in [Moecard](https://mycard.moe/), [YGOPro 233 service](https://ygo233.com/) and [YGOPro Koishi service](http://koishi.222diy.gdn/ ).
 
-### 支持功能
-* Linux上运行
-* Windows上运行
-* 玩家输入同一房名约战
-* 玩家不指定房间名，自动匹配在线玩家
-* 房间列表json
-* 广播消息
-* 召唤台词
-* 先行卡一键更新
-* WindBot在线AI
-* 萌卡用户登陆
-* 竞赛模式锁定玩家卡组
-* 竞赛模式后台保存录像
-* 竞赛模式自动加时赛系统（规则可调）
-  * 0 正常加时赛规则
-  * 1 YGOCore战队联盟第十二届联赛使用规则
-  * 2 正常加时赛规则 + 1胜规则
-  * 3 2018年7月适用的OCG/TCG加时赛规则
-* 断线重连
+### Support function
+* Run on Linux
+* Run on Windows
+* Players enter the same room name to make an appointment
+* The player does not specify a room name, it will automatically match online players
+* Room list json
+* Broadcast message
+* Summoning lines
+* One-click update of advance card
+* WindBot online AI
+* Moe card user login
+* Contest mode locks the player deck
+* Save video in the background in competition mode
+* Automatic overtime system in competition mode (adjustable rules)
+  * 0 Normal overtime rules
+  * 1 Rules for the 12th League of YGOCore Team League
+  * 2 Normal overtime rules + 1 win rule
+  * 3 OCG/TCG overtime rules applicable in July 2018
+* Reconnect after disconnection
 
-### 不支持功能
-* 在线聊天室
+### Function not supported
+* Online chat room
 
-### 使用方法
-* 可参考[wiki](https://github.com/moecube/srvpro/wiki)安装
-* 手动安装：
+### Instructions
+* Refer to [wiki](https://github.com/moecube/srvpro/wiki) to install
+* Manual installation:
   * `git clone https://github.com/moecube/srvpro.git`
   * `cd srvpro`
   * `npm install`
-  * 安装修改后的YGOPro服务端：https://github.com/moecube/ygopro/tree/server
-* `node ygopro-server.js`即可运行
-* 简易的控制台在 http://srvpro.ygo233.com/dashboard.html 或 http://srvpro-cn.ygo233.com/dashboard.html
-* 使用本项目的Docker镜像: https://hub.docker.com/r/nanahira/ygopro-server/
+  * Install the modified YGOPro server: https://github.com/moecube/ygopro/tree/server
+* `node ygopro-server.js` can run
+* The simple console is at http://srvpro.ygo233.com/dashboard.html or http://srvpro-cn.ygo233.com/dashboard.html
+* Use the Docker image of this project: https://hub.docker.com/r/nanahira/ygopro-server/
 
-  * 镜像标签
-    * `nanahira/ygopro-server:latest`: 完整镜像
-    * `nanahira/ygopro-server:lite`: 基本镜像，云录像和人机对战功能需要配合`redis`和`nanahira/windbot`这两个镜像使用。
+  * Mirror label
+    * `nanahira/ygopro-server:latest`: full mirror
+    * `nanahira/ygopro-server:lite`: Basic mirroring, cloud video and human-machine battle functions need to be used with the two mirrors `redis` and `nanahira/windbot`
 
-  * 端口
-    * `7911`: YGOPro端口
-    * `7922`: 管理后台端口
+  * Port
+    * `7911`: YGOPro port
+    * `7922`: Management background port
 
-  * 数据卷
-    * `/ygopro-server/config`: SRVPro配置文件数据卷
-    * `/ygopro-server/ygopro/expansions`: YGOPro额外卡片数据卷
-    * `/ygopro-server/decks`: 竞赛模式卡组数据卷
-    * `/ygopro-server/replays`: 竞赛模式录像数据卷
+  * Data volume
+    * `/ygopro-server/config`: SRVPro configuration file data volume
+    * `/ygopro-server/ygopro/expansions`: YGOPro extra card data volume
+    * `/ygopro-server/decks`: Contest mode deck data volume
+    * `/ygopro-server/replays`: Competition mode recording data volume
 
-  * 若使用竞赛模式启动服务器，建议把启动命令修改为`pm2-docker start /ygopro-server/data/pm2-docker-tournament.js`。
+  * If you start the server in competition mode, it is recommended to modify the start command to `pm2-docker start /ygopro-server/data/pm2-docker-tournament.js`.
 
-### 高级功能
-* 待补充说明
-* 简易的先行卡更新控制台在 http://srvpro.ygo233.com/pre-dashboard.html 或 http://srvpro-cn.ygo233.com/pre-dashboard.html
+### Advanced Features
+* To be added
+* The simple advance card update console is at http://srvpro.ygo233.com/pre-dashboard.html or http://srvpro-cn.ygo233.com/pre-dashboard.html
 
-### 开发计划
-* 重做CTOS和STOC部分
-* 模块化附加功能
-  * 房名代码
-  * 随机对战
-  * 召唤台词
+### Development Plan
+* Redo the CTOS and STOC parts
+* Modular additional functions
+  * Room name code
+  * Random battle
+  * Summoning lines
   * WindBot
-  * 云录像
-  * 比赛模式
-  * 先行卡更新
-* 用户账号系统和管理员账号系统
-* 云录像更换存储方式
+  * Cloud video
+  * Competition mode
+  * Advance card update
+* User account system and administrator account system
+* Cloud video change storage method
 
 ### TODO
 * refactoring CTOS and STOC
@@ -86,7 +86,7 @@
 ### License
 SRVPro
 
-Copyright (C) 2013-2018  MoeCube Team
+Copyright (C) 2013-2018 MoeCube Team
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -95,8 +95,8 @@ License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program. If not, see <https://www.gnu.org/licenses/>.
