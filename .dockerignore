@@ -8,7 +8,6 @@ config.*.json
 config.user.bak
 
 /bak
-/config
 /ygopro
 /windbot
 /decks

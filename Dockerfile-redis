@@ -1,4 +1,4 @@
-# Dockerfile for SRVPro Lite
+# Dockerfile for SRVPro
 FROM debian:stable-slim
 FROM node:12-buster-slim
 
@@ -13,13 +13,15 @@ RUN apt update && apt install -y wget git \
     p7zip-full \
     python3 \
     liblua5.3-dev \
+    redis-server \
     && rm -rf /var/lib/apt/lists/*
 
 # srvpro
 COPY . /ygopro-server
 WORKDIR /ygopro-server
 RUN npm ci && \
-    mkdir decks replays logs
+    mkdir decks replays logs /redis
+
 
 # ygopro
 RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosefallen/ygopro && \
@@ -44,10 +46,10 @@ RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot &
     mv /tmp/windbot/bin/Release /ygopro-server/windbot && \
     cp -rf /ygopro-server/ygopro/cards.cdb /ygopro-server/windbot/ && \
     rm -rf /tmp/windbot
+
 # infos
 WORKDIR /ygopro-server
 EXPOSE 7911 7922 7933
-# VOLUME [ /ygopro-server/config, /ygopro-server/decks, /ygopro-server/replays ]
+# VOLUME [ /ygopro-server/config, /ygopro-server/decks, /ygopro-server/replays, /redis ]
 
-CMD [ "pm2-docker", "start", "/ygopro-server/data/pm2-docker-slim.json" ]
-# CMD [ "node", "ygopro-server.js" ]
+CMD [ "pm2-docker", "start", "/ygopro-server/data/pm2-docker.json" ]
