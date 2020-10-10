@@ -18,13 +18,12 @@ RUN apt update && apt install -y wget git \
 # srvpro
 COPY . /ygopro-server
 WORKDIR /ygopro-server
-RUN npm ci && \
-    mkdir decks replays logs
+RUN npm ci && mkdir decks replays logs
 
 # ygopro
 RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosefallen/ygopro && \
     cd ygopro && \
-    git submodule add -f https://github.com/LordOfNightmares/expansions expansions && \
+    git clone --recursive https://github.com/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
     wget -O - https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz | tar zfx - && \
     ./premake5 gmake && \
@@ -34,9 +33,9 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     mv ./bin/release/ygopro . && \
     strip ygopro && \
     mkdir replay && \
-    rm -rf .git* bin obj build ocgcore cmake lua premake* sound textures .travis.yml *.txt appveyor.yml LICENSE README.md *.lua strings.conf system.conf && \
+    rm -rf LICENSE README.md sound textures strings.conf system.conf && \
     ls gframe | sed '/game.cpp/d' | xargs -I {} rm -rf gframe/{}
-
+#     rm -rf .git* bin obj build ocgcore cmake lua premake*.travis.yml *.txt appveyor.yml *.lua 
 # windbot
 RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot && \
     cd /tmp/windbot && \

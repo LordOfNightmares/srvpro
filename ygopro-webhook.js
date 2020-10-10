@@ -205,19 +205,9 @@ var requestListener = function (req, res) {
 		} catch (err) {
 			return return_error(res, "Error parsing JSON in webhook "+hook+": " + err);
 		}
-		var ref = infodata.ref;
-		if (!ref) {
-			return return_success(res, "Not a push trigger in webhook "+hook+". Skipped.");
-		}
-		var branch = ref.split("/")[2];
-		if (!branch) {
-			return return_error(res, "Invalid branch.");
-		} else if (branch !== hook_info.branch) {
-			return return_success(res, "Branch "+branch+" in webhook "+hook+" is not the current branch "+hook_info.branch+". Skipped.");		
-		} else {
-			var return_msg = add_process(hook, hook_info);
-			return return_success(res, return_msg);	
-		}
+
+		var return_msg = add_process(hook, hook_info);
+		return return_success(res, return_msg);	
 	});
 	return;
 }

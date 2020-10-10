@@ -6,6 +6,11 @@
 			"cwd": "/ygopro-server"
 		},
 		{
+			"name": "ygopro-server",
+			"script": "/ygopro-server/ygopro-webhook.js",
+			"cwd": "/ygopro-server"
+		},
+		{
 			"name": "windbot",
 			"script": "/ygopro-server/windbot/WindBot.exe",
 			"cwd": "/ygopro-server/windbot/",
