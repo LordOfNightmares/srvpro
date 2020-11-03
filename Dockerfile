@@ -23,7 +23,7 @@ RUN npm ci && mkdir decks replays logs
 # ygopro
 RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosefallen/ygopro && \
     cd ygopro && \
-    git clone --recursive https://github.com/LordOfNightmares/expansions expansions && \
+    git clone --recursive https://LordOfNightmares@bitbucket.org/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
     wget -O - https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz | tar zfx - && \
     ./premake5 gmake && \
