@@ -16,3 +16,8 @@ services:
       - "7966:7966"
     volumes:
       - ./config:/ygopro-server/config
+    logging: 
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"

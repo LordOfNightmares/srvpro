@@ -45,7 +45,7 @@ RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot &
     rm -rf /tmp/windbot
 # infos
 WORKDIR /ygopro-server
-EXPOSE 7911 7922 7933
+EXPOSE 7911 7922 7933 7966
 # VOLUME [ /ygopro-server/config, /ygopro-server/decks, /ygopro-server/replays ]
 
 CMD [ "pm2-docker", "start", "/ygopro-server/data/pm2-docker-slim.json" ]
