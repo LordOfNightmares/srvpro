@@ -1,6 +1,6 @@
 # Dockerfile for SRVPro Lite
 FROM debian:stable-slim
-FROM node:12-buster-slim
+FROM node:14-buster-slim
 
 RUN npm install -g pm2
 
