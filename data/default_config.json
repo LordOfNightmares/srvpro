@@ -63,7 +63,7 @@
     "tips": {
       "enabled": true,
       "split_zh": false,
-      "get": false,
+      "get": "https://api.moecube.com/biu-tips/tips.json",
       "get_zh": false
     },
     "dialogues": {
@@ -91,12 +91,14 @@
         "M": true,
         "T": false,
         "OOR": true,
-        "TOR": true,
+        "TOR": false,
         "OR": true,
         "TR": true,
+        "CR": false,
         "OOMR": true,
-        "TOMR": true,
+        "TOMR": false,
         "OMR": true,
+        "CMR": false,
         "TMR": true
       },
       "ready_time": 20,

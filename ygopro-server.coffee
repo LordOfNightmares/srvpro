@@ -276,6 +276,7 @@ loadLFList = (path) ->
   catch
 
 init = () ->
+  log.info('Reading config.')
   await createDirectoryIfNotExists("./config")
   await importOldConfig()
   defaultConfig = await loadJSONAsync('./data/default_config.json')
@@ -296,6 +297,7 @@ init = () ->
     imported = true
   #import the old passwords to new admin user system
   if settings.modules.http.password
+    log.info('Migrating http user.')
     await auth.add_user("olduser", settings.modules.http.password, true, {
       "get_rooms": true,
       "shout": true,
@@ -308,6 +310,7 @@ init = () ->
     delete settings.modules.http.password
     imported = true
   if settings.modules.tournament_mode.password
+    log.info('Migrating tournament user.')
     await auth.add_user("tournament", settings.modules.tournament_mode.password, true, {
       "duel_log": true,
       "download_replay": true,
@@ -318,12 +321,14 @@ init = () ->
     delete settings.modules.tournament_mode.password
     imported = true
   if settings.modules.pre_util.password
+    log.info('Migrating pre-dash user.')
     await auth.add_user("pre", settings.modules.pre_util.password, true, {
       "pre_dashboard": true
     })
     delete settings.modules.pre_util.password
     imported = true
   if settings.modules.update_util.password
+    log.info('Migrating update-dash user.')
     await auth.add_user("update", settings.modules.update_util.password, true, {
       "update_dashboard": true
     })
@@ -357,10 +362,12 @@ init = () ->
           "TOR": true,
           "OR": true,
           "TR": true,
+          "CR": true,
           "OOMR": true,
           "TOMR": true,
           "OMR": true,
-          "TMR": true
+          "TMR": true,
+          "CMR": true
         }
     delete settings.modules.random_duel.blank_pass_match
     imported = true
@@ -373,19 +380,23 @@ init = () ->
           "TOR": true,
           "OR": true,
           "TR": true,
+          "CR": true,
           "OOMR": false,
           "TOMR": false,
           "OMR": false,
-          "TMR": false
+          "TMR": false,
+          "CMR": false
         }
     delete settings.modules.random_duel.blank_pass_match
     imported = true
   #finish
   if imported
+    log.info('Saving migrated settings.')
     await setting_save(settings)
   if settings.modules.mysql.enabled
     DataManager = require('./data-manager/DataManager.js').DataManager
     dataManager = global.dataManager = new DataManager(settings.modules.mysql.db, log)
+    log.info('Connecting to database.')
     await dataManager.init()
   else
     log.warn("Some functions may be limited without MySQL .")
@@ -411,6 +422,7 @@ init = () ->
       log.warn("Cannot record random match scores because no MySQL.")
 
   # 读取数据
+  log.info('Loading data.')
   default_data = await loadJSONAsync('./data/default_data.json')
   try
     tips = global.tips = await loadJSONAsync('./config/tips.json')
@@ -444,11 +456,13 @@ init = () ->
     try
       chat_color = await loadJSONAsync('./config/chat_color.json')
       if chat_color
+        log.info("Migrating chat color.")
         await dataManager.migrateChatColors(chat_color.save_list);
         await fs.promises.rename('./config/chat_color.json', './config/chat_color.json.bak')
         log.info("Chat color migrated.")
     catch
   try
+    log.info("Reading YGOPro version.")
     cppversion = parseInt((await fs.promises.readFile('ygopro/gframe/game.cpp', 'utf8')).match(/PRO_VERSION = ([x\dABCDEF]+)/)[1], '16')
     await setting_change(settings, "version", cppversion)
     log.info "ygopro version 0x"+settings.version.toString(16), "(from source code)"
@@ -456,10 +470,12 @@ init = () ->
   #settings.version = settings.version_default
     log.info "ygopro version 0x"+settings.version.toString(16), "(from config)"
   # load the lflist of current date
+  log.info("Reading banlists.")
   await loadLFList('ygopro/expansions/lflist.conf')
   await loadLFList('ygopro/lflist.conf')
 
   if settings.modules.windbot.enabled
+    log.info("Reading bot list.")
     windbots = global.windbots = (await loadJSONAsync(settings.modules.windbot.botlist)).windbots
     real_windbot_server_ip = global.real_windbot_server_ip = settings.modules.windbot.server_ip
     if !settings.modules.windbot.server_ip.includes("127.0.0.1")
@@ -506,6 +522,7 @@ init = () ->
         arena: settings.modules.arena_mode.mode
       })
       try
+        log.info("Sending arena init post.")
         await axios.post(settings.modules.arena_mode.init_post.url + "?" + postData)
       catch e
         log.warn 'ARENA INIT POST ERROR', e
@@ -670,6 +687,7 @@ init = () ->
 
   , 1000
 
+  log.info("Starting server.")
   net.createServer(netRequestHandler).listen settings.port, ->
     log.info "server started", settings.port
     return
@@ -790,7 +808,7 @@ ROOM_find_or_create_by_name = global.ROOM_find_or_create_by_name = (name, player
   uname=name.toUpperCase()
   if settings.modules.windbot.enabled and (uname[0...2] == 'AI' or (!settings.modules.random_duel.enabled and uname == ''))
     return ROOM_find_or_create_ai(name)
-  if settings.modules.random_duel.enabled and (uname == '' or uname == 'S' or uname == 'M' or uname == 'T' or uname == 'TOR' or uname == 'TR' or uname == 'OOR' or uname == 'OR' or uname == 'TOMR' or uname == 'TMR' or uname == 'OOMR' or uname == 'OMR')
+  if settings.modules.random_duel.enabled and (uname == '' or uname == 'S' or uname == 'M' or uname == 'T' or uname == 'TOR' or uname == 'TR' or uname == 'OOR' or uname == 'OR' or uname == 'TOMR' or uname == 'TMR' or uname == 'OOMR' or uname == 'OMR' or uname == 'CR' or uname == 'CMR')
     return await ROOM_find_or_create_random(uname, player_ip)
   if room = ROOM_find_by_name(name)
     return room
@@ -1351,6 +1369,10 @@ class Room
         @hostinfo.rule = 2
         @hostinfo.lflist = 0
 
+      if (rule.match /(^|，|,)(CR|CCGRANDOM)(，|,|$)/)
+        @hostinfo.rule = 4
+        @hostinfo.lflist = -1
+
       if (rule.match /(^|，|,)(TOR|TCGONLYRANDOM)(，|,|$)/)
         @hostinfo.rule = 1
         @hostinfo.lflist = _.findIndex lflists, (list)-> list.tcg
@@ -1367,6 +1389,11 @@ class Room
       if (rule.match /(^|，|,)(OMR|OCGMATCHRANDOM)(，|,|$)/)
         @hostinfo.rule = 2
         @hostinfo.lflist = 0
+        @hostinfo.mode = 1
+
+      if (rule.match /(^|，|,)(CMR|CCGMATCHRANDOM)(，|,|$)/)
+        @hostinfo.rule = 4
+        @hostinfo.lflist = -1
         @hostinfo.mode = 1
 
       if (rule.match /(^|，|,)(TOMR|TCGONLYMATCHRANDOM)(，|,|$)/)
@@ -1389,6 +1416,10 @@ class Room
 
       if (rule.match /(^|，|,)(OT|TCG)(，|,|$)/)
         @hostinfo.rule = 2
+
+      if (rule.match /(^|，|,)(CN|CCG|CHINESE)(，|,|$)/)
+        @hostinfo.rule = 4
+        @hostinfo.lflist = -1
 
       if (param = rule.match /(^|，|,)LP(\d+)(，|,|$)/)
         start_lp = parseInt(param[2])
@@ -1483,6 +1514,7 @@ class Room
       @process = spawn './ygopro', param, {cwd: 'ygopro'}
       @process_pid = @process.pid
       @process.on 'error', (err)=>
+        log.warn 'CREATE ROOM ERROR', err
         _.each @players, (player)->
           ygopro.stoc_die(player, "${create_room_failed}")
         this.delete()
@@ -1519,7 +1551,8 @@ class Room
           @send_replays()
           @process.kill()
         return
-    catch
+    catch e
+      log.warn 'CREATE ROOM FAIL', e
       @error = "${create_room_failed}"
   delete: ->
     return if @deleted
@@ -1575,7 +1608,7 @@ class Room
         if error
           log.warn 'SCORE POST ERROR', error
         else
-          if response.statusCode != 204 and response.statusCode != 200
+          if response.statusCode >= 300
             log.warn 'SCORE POST FAIL', response.statusCode, response.statusMessage, @name, body
           #else
           #  log.info 'SCORE POST OK', response.statusCode, response.statusMessage, @name, body
@@ -1755,7 +1788,7 @@ class Room
         else
           for player in @players when player.pos != 7
             @scores[player.name_vpass] = -5
-          if @players.length == 2 and !client.arena_quit_free
+          if @players.length == 2 and @arena == 'athletic' and !client.arena_quit_free
             @scores[client.name_vpass] = -9
         @arena_score_handled = true
       index = _.indexOf(@players, client)
@@ -1865,6 +1898,48 @@ class Room
         ygopro.stoc_send_chat_to_room(room, "#{player.name}${using_athletic_deck}", ygopro.constants.COLORS.BABYBLUE)
     ))
     await return
+  
+  join_post_watch: (client) ->
+    if @duel_stage != ygopro.constants.DUEL_STAGE.BEGIN
+      if settings.modules.cloud_replay.enable_halfway_watch and !@hostinfo.no_watch
+        client.setTimeout(300000) #连接后超时5分钟
+        client.rid = _.indexOf(ROOM_all, this)
+        client.is_post_watcher = true
+        if settings.modules.vip.enabled and await CLIENT_check_vip(client)
+          playWords = await dataManager.getUserWords(CLIENT_get_authorize_key(client))
+          if playWords
+            @playLines(playWords)
+        else if settings.modules.words.enabled and words.words[client.name]
+          @playLines words.words[client.name][Math.floor(Math.random() * words.words[client.name].length)]
+        ygopro.stoc_send_chat_to_room(this, "#{client.name} ${watch_join}")
+        @watchers.push client
+        ygopro.stoc_send_chat(client, "${watch_watching}", ygopro.constants.COLORS.BABYBLUE)
+        for buffer in @watcher_buffers
+          client.write buffer
+        return true
+      else
+        ygopro.stoc_die(client, "${watch_denied}")
+        return false
+    else
+      return false
+
+  join_player: (client) ->
+    if @error
+      ygopro.stoc_die(client, @error)
+      return false
+    if @duel_stage != ygopro.constants.DUEL_STAGE.BEGIN
+      return @join_post_watch(client)
+    if @hostinfo.no_watch and @players.length >= (if @hostinfo.mode == 2 then 4 else 2)
+      ygopro.stoc_die(client, "${watch_denied_room}")
+      return true
+    if @challonge_info
+      for player in @get_playing_player() when player and player != client and player.challonge_info.id == client.challonge_info.id
+        ygopro.stoc_die(client, "${challonge_player_already_in}")
+        return false
+    client.setTimeout(300000) #连接后超时5分钟
+    client.rid = _.indexOf(ROOM_all, this)
+    @connect(client)
+    return true
 
   playLines: (lines) ->
     for line in _.lines lines
@@ -2308,31 +2383,8 @@ ygopro.ctos_follow 'JOIN_GAME', true, (buffer, info, client, server, datas)->
         ygopro.stoc_die(client, "${server_full}")
       else if room.error
         ygopro.stoc_die(client, room.error)
-      else if room.duel_stage != ygopro.constants.DUEL_STAGE.BEGIN
-        if settings.modules.cloud_replay.enable_halfway_watch and !room.hostinfo.no_watch
-          client.setTimeout(300000) #连接后超时5分钟
-          client.rid = _.indexOf(ROOM_all, room)
-          client.is_post_watcher = true
-          if settings.modules.vip.enabled and await CLIENT_check_vip(client)
-            playWords = await dataManager.getUserWords(CLIENT_get_authorize_key(client))
-            if playWords
-              room.playLines(playWords)
-          else if settings.modules.words.enabled and words.words[client.name]
-            room.playLines words.words[client.name][Math.floor(Math.random() * words.words[client.name].length)]
-          ygopro.stoc_send_chat_to_room(room, "#{client.name} ${watch_join}")
-          room.watchers.push client
-          ygopro.stoc_send_chat(client, "${watch_watching}", ygopro.constants.COLORS.BABYBLUE)
-          for buffer in room.watcher_buffers
-            client.write buffer
-        else
-          ygopro.stoc_die(client, "${watch_denied}")
-      else if room.hostinfo.no_watch and room.players.length >= (if room.hostinfo.mode == 2 then 4 else 2)
-        ygopro.stoc_die(client, "${watch_denied_room}")
-      else
-        #client.room = room
-        client.setTimeout(300000) #连接后超时5分钟
-        client.rid = _.indexOf(ROOM_all, room)
-        room.connect(client)
+      else 
+        room.join_player(client)
       return
 
     _async.auto({
@@ -2396,8 +2448,8 @@ ygopro.ctos_follow 'JOIN_GAME', true, (buffer, info, client, server, datas)->
             if check_buffer_indentity(decrypted_buffer)
               buffer = decrypted_buffer
           else
-            log.warn("READ USER FAIL", error, body)
-            done("${create_room_failed}")
+            log.warn("READ USER FAIL", client.name, error, body)
+            done("${load_user_info_fail}")
             return
 
           # buffer != decrypted_buffer  ==> auth failed
@@ -2432,15 +2484,8 @@ ygopro.ctos_follow 'JOIN_GAME', true, (buffer, info, client, server, datas)->
       buffer = struct.buffer
     pre_room = ROOM_find_by_name(info.pass)
     if pre_room and pre_room.duel_stage != ygopro.constants.DUEL_STAGE.BEGIN and settings.modules.cloud_replay.enable_halfway_watch and !pre_room.hostinfo.no_watch
-      room = pre_room
-      client.setTimeout(300000) #连接后超时5分钟
-      client.rid = _.indexOf(ROOM_all, room)
-      client.is_post_watcher = true
-      ygopro.stoc_send_chat_to_room(room, "#{client.name} ${watch_join}")
-      room.watchers.push client
-      ygopro.stoc_send_chat(client, "${watch_watching}", ygopro.constants.COLORS.BABYBLUE)
-      for buffer in room.watcher_buffers
-        client.write buffer
+      pre_room.join_post_watch(client)
+      return
     else
       ygopro.stoc_send_chat(client, '${loading_user_info}', ygopro.constants.COLORS.BABYBLUE)
       client.setTimeout(300000) #连接后超时5分钟
@@ -2499,34 +2544,8 @@ ygopro.ctos_follow 'JOIN_GAME', true, (buffer, info, client, server, datas)->
           ygopro.stoc_die(client, "${server_full}")
         else if room.error
           ygopro.stoc_die(client, room.error)
-        else if room.duel_stage != ygopro.constants.DUEL_STAGE.BEGIN
-          if settings.modules.cloud_replay.enable_halfway_watch and !room.hostinfo.no_watch
-            #client.setTimeout(300000) #连接后超时5分钟
-            client.rid = _.indexOf(ROOM_all, room)
-            client.is_post_watcher = true
-            if settings.modules.vip.enabled and await CLIENT_check_vip(client)
-              playWords = await dataManager.getUserWords(CLIENT_get_authorize_key(client))
-              if playWords
-                room.playLines(playWords)
-            else if settings.modules.words.enabled and words.words[client.name]
-              room.playLines words.words[client.name][Math.floor(Math.random() * words.words[client.name].length)]
-            ygopro.stoc_send_chat_to_room(room, "#{client.name} ${watch_join}")
-            room.watchers.push client
-            ygopro.stoc_send_chat(client, "${watch_watching}", ygopro.constants.COLORS.BABYBLUE)
-            for buffer in room.watcher_buffers
-              client.write buffer
-          else
-            ygopro.stoc_die(client, "${watch_denied}")
-        else if room.hostinfo.no_watch and room.players.length >= (if room.hostinfo.mode == 2 then 4 else 2)
-          ygopro.stoc_die(client, "${watch_denied_room}")
         else
-          for player in room.get_playing_player() when player and player != client and player.challonge_info.id == client.challonge_info.id
-            ygopro.stoc_die(client, "${challonge_player_already_in}")
-            return
-          #client.room = room
-          #client.setTimeout(300000) #连接后超时5分钟
-          client.rid = _.indexOf(ROOM_all, room)
-          room.connect(client)
+          room.join_player(client)
         return
       )
 
@@ -2575,30 +2594,8 @@ ygopro.ctos_follow 'JOIN_GAME', true, (buffer, info, client, server, datas)->
       ygopro.stoc_die(client, "${server_full}")
     else if room.error
       ygopro.stoc_die(client, room.error)
-    else if room.duel_stage != ygopro.constants.DUEL_STAGE.BEGIN
-      if settings.modules.cloud_replay.enable_halfway_watch and !room.hostinfo.no_watch
-        client.setTimeout(300000) #连接后超时5分钟
-        client.rid = _.indexOf(ROOM_all, room)
-        client.is_post_watcher = true
-        if settings.modules.vip.enabled and await CLIENT_check_vip(client)
-            playWords = await dataManager.getUserWords(CLIENT_get_authorize_key(client))
-            if playWords
-              room.playLines(playWords)
-        else if settings.modules.words.enabled and words.words[client.name]
-          room.playLines words.words[client.name][Math.floor(Math.random() * words.words[client.name].length)]
-        ygopro.stoc_send_chat_to_room(room, "#{client.name} ${watch_join}")
-        room.watchers.push client
-        ygopro.stoc_send_chat(client, "${watch_watching}", ygopro.constants.COLORS.BABYBLUE)
-        for buffer in room.watcher_buffers
-          client.write buffer
-      else
-        ygopro.stoc_die(client, "${watch_denied}")
-    else if room.hostinfo.no_watch and room.players.length >= (if room.hostinfo.mode == 2 then 4 else 2)
-      ygopro.stoc_die(client, "${watch_denied_room}")
     else
-      client.setTimeout(300000) #连接后超时5分钟
-      client.rid = _.indexOf(ROOM_all, room)
-      room.connect(client)
+      room.join_player(client)
   await return
 
 ygopro.stoc_follow 'JOIN_GAME', false, (buffer, info, client, server, datas)->
@@ -3263,7 +3260,7 @@ ygopro.stoc_follow 'DUEL_START', false, (buffer, info, client, server, datas)->
         if error
           log.warn 'DECK POST ERROR', error
         else
-          if response.statusCode != 200
+          if response.statusCode > 300
             log.warn 'DECK POST FAIL', response.statusCode, client.name, body
           #else
             #log.info 'DECK POST OK', response.statusCode, client.name, body
@@ -3304,7 +3301,7 @@ report_to_big_brother = global.report_to_big_brother = (roomname, sender, ip, le
     if error
       log.warn 'BIG BROTHER ERROR', error
     else
-      if response.statusCode != 200
+      if response.statusCode >= 300
         log.warn 'BIG BROTHER FAIL', response.statusCode, roomname, body
       #else
         #log.info 'BIG BROTHER OK', response.statusCode, roomname, body
