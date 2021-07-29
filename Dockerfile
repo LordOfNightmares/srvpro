@@ -25,7 +25,7 @@ RUN apt update && \
 COPY . /ygopro-server
 WORKDIR /ygopro-server
 RUN npm ci && \
-    mkdir config decks replays logs
+    mkdir decks replays logs
 
 COPY --from=premake-builder /usr/src/premake/bin/release/premake5 /usr/bin/premake5
 
