@@ -8,13 +8,13 @@ import net from "net";
 
 
 class Handler {
-	handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean>;
+	private handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean | string>;
 	synchronous: boolean;
-	constructor(handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean>, synchronous: boolean) {
+	constructor(handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean | string>, synchronous: boolean) {
 		this.handler = handler;
 		this.synchronous = synchronous || false;
 	}
-	async handle(buffer: Buffer, info: any, datas: Buffer[], params: any) {
+	async handle(buffer: Buffer, info: any, datas: Buffer[], params: any): Promise<boolean | string> {
 		if (this.synchronous) {
 			return !!(await this.handler(buffer, info, datas, params));
 		} else {
@@ -46,14 +46,32 @@ export interface HandleResult {
 	feedback: Feedback;
 }
 
+export interface Constants {
+	TYPES: Record<string, number>;
+	RACES: Record<string, number>;
+	ATTRIBUTES: Record<string, number>;
+	LINK_MARKERS: Record<string, number>;
+	DUEL_STAGE: Record<string, number>;
+	COLORS: Record<string, number>;
+	TIMING: Record<string, string>;
+	NETWORK: Record<string, string>;
+	NETPLAYER: Record<string, string>;
+	CTOS: Record<string, string>;
+	STOC: Record<string, string>;
+	PLAYERCHANGE: Record<string, string>;
+	ERRMSG: Record<string, string>;
+	MODE: Record<string, string>;
+	MSG: Record<string, string>;
+}
+
 export class YGOProMessagesHelper {
 
 	handlers: HandlerList;
 	structs: Map<string, Struct>;
-	structs_declaration: any;
-	typedefs: any;
-	proto_structs: any;
-	constants: any;
+	structs_declaration: Record<string, Struct>;
+	typedefs: Record<string, string>;
+	proto_structs: Record<'CTOS' | 'STOC', Record<string, string>>;
+	constants: Constants;
 	singleHandleLimit: number;
 
 	constructor(singleHandleLimit?: number) {
@@ -190,7 +208,7 @@ export class YGOProMessagesHelper {
 		});
 	}
 
-	addHandler(protostr: string, handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean>, synchronous: boolean, priority: number) {
+	addHandler(protostr: string, handler: (buffer: Buffer, info: any, datas: Buffer[], params: any) => Promise<boolean | string>, synchronous: boolean, priority: number) {
 		if (priority < 0 || priority > 4) {
 			throw "Invalid priority: " + priority;
 		}
@@ -208,12 +226,13 @@ export class YGOProMessagesHelper {
 		handlerCollection.get(translatedProto).push(handlerObj);
 	}
 
-	async handleBuffer(messageBuffer: Buffer, direction: string, protoFilter?: string[], params?: any): Promise<HandleResult> {
+	async handleBuffer(messageBuffer: Buffer, direction: string, protoFilter?: string[], params?: any, preconnect = false): Promise<HandleResult> {
 		let feedback: Feedback = null;
 		let messageLength = 0;
 		let bufferProto = 0;
 		let datas: Buffer[] = [];
-		for (let l = 0; l < this.singleHandleLimit; ++l) {
+		const limit = preconnect ? 2 : this.singleHandleLimit;
+		for (let l = 0; l < limit; ++l) {
 			if (messageLength === 0) {
 				if (messageBuffer.length >= 2) {
 					messageLength = messageBuffer.readUInt16LE(0);
@@ -239,7 +258,14 @@ export class YGOProMessagesHelper {
 			} else {
 				if (messageBuffer.length >= 2 + messageLength) {
 					const proto = this.constants[direction][bufferProto];
-					let cancel = proto && protoFilter && _.indexOf(protoFilter, proto) === -1;
+					let cancel: string | boolean = proto && protoFilter && !protoFilter.includes(proto);
+					if (cancel && preconnect) {
+						feedback = {
+							type: "INVALID_PACKET",
+							message: `${direction} proto not allowed`
+						};
+						break;
+					}
 					let buffer = messageBuffer.slice(3, 2 + messageLength);
 					//console.log(l, direction, proto, cancel);
 					for (let priority = 0; priority < 4; ++priority) {
@@ -257,6 +283,12 @@ export class YGOProMessagesHelper {
 							for (let handler of handlerCollection.get(bufferProto)) {
 								cancel = await handler.handle(buffer, info, datas, params);
 								if (cancel) {
+									if (cancel === '_cancel') {
+										return {
+											datas: [],
+											feedback
+										}
+									}
 									break;
 								}
 							}
@@ -278,10 +310,10 @@ export class YGOProMessagesHelper {
 					break;
 				}
 			}
-			if (l === this.singleHandleLimit - 1) {
+			if (l === limit - 1) {
 				feedback = {
 					type: "OVERSIZE",
-					message: `Oversized ${direction}`
+					message: `Oversized ${direction} ${limit}`
 				};
 			}
 		}

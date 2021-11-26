@@ -11,6 +11,8 @@ const typedefs_json_1 = __importDefault(require("./data/typedefs.json"));
 const proto_structs_json_1 = __importDefault(require("./data/proto_structs.json"));
 const constants_json_1 = __importDefault(require("./data/constants.json"));
 class Handler {
+    handler;
+    synchronous;
     constructor(handler, synchronous) {
         this.handler = handler;
         this.synchronous = synchronous || false;
@@ -28,6 +30,13 @@ class Handler {
     }
 }
 class YGOProMessagesHelper {
+    handlers;
+    structs;
+    structs_declaration;
+    typedefs;
+    proto_structs;
+    constants;
+    singleHandleLimit;
     constructor(singleHandleLimit) {
         this.handlers = {
             STOC: [new Map(),
@@ -62,7 +71,7 @@ class YGOProMessagesHelper {
         this.structs = new Map();
         for (let name in this.structs_declaration) {
             const declaration = this.structs_declaration[name];
-            let result = struct_1.Struct();
+            let result = (0, struct_1.Struct)();
             for (let field of declaration) {
                 if (field.encoding) {
                     switch (field.encoding) {
@@ -171,12 +180,13 @@ class YGOProMessagesHelper {
         }
         handlerCollection.get(translatedProto).push(handlerObj);
     }
-    async handleBuffer(messageBuffer, direction, protoFilter, params) {
+    async handleBuffer(messageBuffer, direction, protoFilter, params, preconnect = false) {
         let feedback = null;
         let messageLength = 0;
         let bufferProto = 0;
         let datas = [];
-        for (let l = 0; l < this.singleHandleLimit; ++l) {
+        const limit = preconnect ? 2 : this.singleHandleLimit;
+        for (let l = 0; l < limit; ++l) {
             if (messageLength === 0) {
                 if (messageBuffer.length >= 2) {
                     messageLength = messageBuffer.readUInt16LE(0);
@@ -206,7 +216,14 @@ class YGOProMessagesHelper {
             else {
                 if (messageBuffer.length >= 2 + messageLength) {
                     const proto = this.constants[direction][bufferProto];
-                    let cancel = proto && protoFilter && underscore_1.default.indexOf(protoFilter, proto) === -1;
+                    let cancel = proto && protoFilter && !protoFilter.includes(proto);
+                    if (cancel && preconnect) {
+                        feedback = {
+                            type: "INVALID_PACKET",
+                            message: `${direction} proto not allowed`
+                        };
+                        break;
+                    }
                     let buffer = messageBuffer.slice(3, 2 + messageLength);
                     //console.log(l, direction, proto, cancel);
                     for (let priority = 0; priority < 4; ++priority) {
@@ -224,6 +241,12 @@ class YGOProMessagesHelper {
                             for (let handler of handlerCollection.get(bufferProto)) {
                                 cancel = await handler.handle(buffer, info, datas, params);
                                 if (cancel) {
+                                    if (cancel === '_cancel') {
+                                        return {
+                                            datas: [],
+                                            feedback
+                                        };
+                                    }
                                     break;
                                 }
                             }
@@ -246,10 +269,10 @@ class YGOProMessagesHelper {
                     break;
                 }
             }
-            if (l === this.singleHandleLimit - 1) {
+            if (l === limit - 1) {
                 feedback = {
                     type: "OVERSIZE",
-                    message: `Oversized ${direction}`
+                    message: `Oversized ${direction} ${limit}`
                 };
             }
         }
