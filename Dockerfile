@@ -20,6 +20,10 @@ RUN apt update && \
     env DEBIAN_FRONTEND=noninteractive apt install -y wget git build-essential libevent-dev libsqlite3-dev p7zip-full python3 python-is-python3 liblua5.3-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN apt update && \
+    env DEBIAN_FRONTEND=noninteractive apt install -y mono-complete  && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # srvpro
 COPY . /ygopro-server
 WORKDIR /ygopro-server
@@ -33,7 +37,6 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     cd ygopro && \
     git clone --recursive https://LordOfNightmares@bitbucket.org/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
-    cp -r -f patch ocgcore && \
     premake5 gmake && \
     cd build && \
     make config=release -j$(nproc) && \
@@ -45,7 +48,7 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     ls gframe | sed '/game.cpp/d' | xargs -I {} rm -rf gframe/{}
 #     rm -rf .git* bin obj build ocgcore cmake lua premake*.travis.yml *.txt appveyor.yml *.lua 
 # windbot
-RUN git clone --depth=1 https://code.mycard.moe/nanahira/windbot /tmp/windbot && \
+RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot && \
     cd /tmp/windbot && \
     xbuild /property:Configuration=Release /property:TargetFrameworkVersion="v4.5" && \
     mv /tmp/windbot/bin/Release /ygopro-server/windbot && \
