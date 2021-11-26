@@ -16,6 +16,8 @@ services:
       - "7966:7966"
     volumes:
       - ./config:/ygopro-server/config
+      - ./patch:/ygopro-server/ygopro/patch
+      - ./manual:/ygopro-server/ygopro/manual
     logging: 
       driver: "json-file"
       options:
