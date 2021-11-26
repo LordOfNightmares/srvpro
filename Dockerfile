@@ -1,5 +1,6 @@
-# Dockerfile for SRVPro
-FROM debian:buster as premake-builder
+ARG BASE_IMAGE=git-registry.mycard.moe/mycard/srvpro:lite
+FROM $BASE_IMAGE
+LABEL Author="Nanahira <nanahira@momobako.com>"
 
 RUN apt update && \
     env DEBIAN_FRONTEND=noninteractive apt install -y wget build-essential p7zip-full && \
@@ -45,7 +46,7 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     ls gframe | sed '/game.cpp/d' | xargs -I {} rm -rf gframe/{}
 #     rm -rf .git* bin obj build ocgcore cmake lua premake*.travis.yml *.txt appveyor.yml *.lua 
 # windbot
-RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot && \
+RUN git clone --depth=1 https://code.mycard.moe/nanahira/windbot /tmp/windbot && \
     cd /tmp/windbot && \
     xbuild /property:Configuration=Release /property:TargetFrameworkVersion="v4.5" && \
     mv /tmp/windbot/bin/Release /ygopro-server/windbot && \

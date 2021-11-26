@@ -12,13 +12,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateAndUpdateTimeBase = void 0;
 const typeorm_1 = require("typeorm");
 class CreateAndUpdateTimeBase {
+    createTime;
+    updateTime;
 }
 __decorate([
-    typeorm_1.CreateDateColumn(),
+    (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], CreateAndUpdateTimeBase.prototype, "createTime", void 0);
 __decorate([
-    typeorm_1.UpdateDateColumn(),
+    (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], CreateAndUpdateTimeBase.prototype, "updateTime", void 0);
 exports.CreateAndUpdateTimeBase = CreateAndUpdateTimeBase;

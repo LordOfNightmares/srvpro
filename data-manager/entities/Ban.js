@@ -13,24 +13,27 @@ exports.Ban = void 0;
 const typeorm_1 = require("typeorm");
 const CreateAndUpdateTimeBase_1 = require("./CreateAndUpdateTimeBase");
 let Ban = class Ban extends CreateAndUpdateTimeBase_1.CreateAndUpdateTimeBase {
+    id;
+    ip;
+    name;
 };
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn({ unsigned: true, type: "bigint" }),
+    (0, typeorm_1.PrimaryGeneratedColumn)({ unsigned: true, type: global.PrimaryKeyType || 'bigint' }),
     __metadata("design:type", Number)
 ], Ban.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Index(),
-    typeorm_1.Column({ type: "varchar", length: 64, nullable: true }),
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ type: "varchar", length: 64, nullable: true }),
     __metadata("design:type", String)
 ], Ban.prototype, "ip", void 0);
 __decorate([
-    typeorm_1.Index(),
-    typeorm_1.Column({ type: "varchar", length: 20, nullable: true }),
+    (0, typeorm_1.Index)(),
+    (0, typeorm_1.Column)({ type: "varchar", length: 20, nullable: true }),
     __metadata("design:type", String)
 ], Ban.prototype, "name", void 0);
 Ban = __decorate([
-    typeorm_1.Entity(),
-    typeorm_1.Unique(["ip", "name"])
+    (0, typeorm_1.Entity)(),
+    (0, typeorm_1.Unique)(["ip", "name"])
 ], Ban);
 exports.Ban = Ban;
 //# sourceMappingURL=Ban.js.map
