@@ -1,6 +1,4 @@
-ARG BASE_IMAGE=git-registry.mycard.moe/mycard/srvpro:lite
-FROM $BASE_IMAGE
-LABEL Author="Nanahira <nanahira@momobako.com>"
+FROM debian:bullseye as premake-builder
 
 RUN apt update && \
     env DEBIAN_FRONTEND=noninteractive apt install -y wget build-essential p7zip-full && \
@@ -13,13 +11,13 @@ RUN wget -O premake.zip https://github.com/premake/premake-core/releases/downloa
     cd premake/build/gmake.unix && \
     make -j$(nproc)
 
-FROM node:14-buster-slim
+FROM node:16-bullseye-slim
 
 RUN npm install -g pm2
 
 # apt
 RUN apt update && \
-    env DEBIAN_FRONTEND=noninteractive apt install -y wget git build-essential libevent-dev libsqlite3-dev mono-complete p7zip-full python3 liblua5.3-dev python && \
+    env DEBIAN_FRONTEND=noninteractive apt install -y wget git build-essential libevent-dev libsqlite3-dev p7zip-full python3 python-is-python3 liblua5.3-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # srvpro
@@ -35,6 +33,7 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     cd ygopro && \
     git clone --recursive https://LordOfNightmares@bitbucket.org/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
+    cp -r -f patch ocgcore && \
     premake5 gmake && \
     cd build && \
     make config=release -j$(nproc) && \
