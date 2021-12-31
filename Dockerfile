@@ -37,6 +37,8 @@ RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosef
     cd ygopro && \
     git clone --recursive https://LordOfNightmares@bitbucket.org/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
+    ls && \
+    cp -r -f ../patch/. ./ocgcore/ &&\
     premake5 gmake && \
     cd build && \
     make config=release -j$(nproc) && \
