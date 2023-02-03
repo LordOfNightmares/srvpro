@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -53,7 +57,7 @@ class DataManager {
         try {
             // @ts-ignore
             if (this.config.type !== 'sqlite') {
-                this.db.transaction(async (mdb) => {
+                await this.db.transaction(async (mdb) => {
                     const result = await fun(mdb);
                     if (!result) {
                         throw new Error('Rollback requested.');
@@ -614,11 +618,12 @@ class DataManager {
     }
     async useVipKey(userKey, vipKeyText) {
         let user = await this.getOrCreateUser(userKey);
-        let result = 0;
+        let result = 3;
         await this.transaction(async (mdb) => {
             try {
                 const vipKey = await mdb.findOne(VipKey_1.VipKey, { key: vipKeyText, isUsed: 0 });
                 if (!vipKey) {
+                    result = 0;
                     return false;
                 }
                 const keyType = vipKey.type;

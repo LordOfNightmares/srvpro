@@ -1,8 +1,14 @@
 FROM debian:bullseye as premake-builder
 
 RUN apt update && \
+<<<<<<< HEAD
     env DEBIAN_FRONTEND=noninteractive apt install -y wget build-essential p7zip-full && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+=======
+    apt -y install mono-complete && \
+    npm install -g pm2 && \
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* /var/log/*
+>>>>>>> master
 
 WORKDIR /usr/src
 RUN wget -O premake.zip https://github.com/premake/premake-core/releases/download/v5.0.0-beta1/premake-5.0.0-beta1-src.zip && \
