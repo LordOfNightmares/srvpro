@@ -4,11 +4,12 @@ RUN apt update && \
     env DEBIAN_FRONTEND=noninteractive apt install -y wget build-essential p7zip-full && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+
 WORKDIR /usr/src
 RUN wget -O premake.zip https://github.com/premake/premake-core/releases/download/v5.0.0-beta1/premake-5.0.0-beta1-src.zip && \
     7z x -y premake.zip && \
-    mv premake-5.0.0-beta1 premake && \
-    cd premake/build/gmake.unix && \
+    mv premake-5.0.0-beta1-src premake && \
+    cd premake/build/gmake2.unix && \
     make -j$(nproc)
 
 FROM node:16-bullseye-slim
@@ -33,13 +34,13 @@ RUN npm ci && \
 COPY --from=premake-builder /usr/src/premake/bin/release/premake5 /usr/bin/premake5
 
 # ygopro
-RUN git clone --branch=server --recursive --depth=1 https://github.com/purerosefallen/ygopro && \
+RUN git clone --branch=server --recursive --depth=1 https://code.mycard.moe/nanahira/ygopro && \
     cd ygopro && \
     git clone --recursive https://LordOfNightmares@bitbucket.org/LordOfNightmares/expansions expansions && \
     git submodule foreach git checkout master && \
     ls && \
     cp -r -f ../patch/. ./ocgcore/ &&\
-    premake5 gmake && \
+    premake5 gmake --lua-deb && \
     cd build && \
     make config=release -j$(nproc) && \
     cd .. && \

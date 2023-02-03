@@ -21,7 +21,7 @@ interface AthleticDecksReturnData {
 
 interface ReturnMessage {
 	success: boolean;
-	athletic?: boolean;
+	athletic?: number;
 	message: string;
 }
 
@@ -61,10 +61,13 @@ export class AthleticChecker {
 	}
 	async checkAthletic(deck: Deck): Promise<ReturnMessage> {
 		try {
-			const athleticDecks = await this.getAthleticDecks();
 			const deckType = await this.getDeckType(deck);
-			const athletic = athleticDecks.includes(deckType);
-			return { success: true, athletic, message: null }
+			if (deckType === '迷之卡组') {
+				return { success: true, athletic: 0, message: null };
+			}
+			const athleticDecks = await this.getAthleticDecks();
+			const athletic = athleticDecks.findIndex(d => d === deckType) + 1;
+			return { success: true, athletic, message: null };
 		} catch (e) {
 			return { success: false, message: e.toString() };
 		}

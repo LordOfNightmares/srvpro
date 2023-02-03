@@ -73,7 +73,7 @@
     },
     "dialogues": {
       "enabled": true,
-      "get_custom": "https://minio.momobako.com:9000/public/ygopro-tips/dialogues-222.json",
+      "get_custom": false,
       "get": "http://mercury233.me/ygosrv233/dialogues.json"
     },
     "words": {
@@ -163,11 +163,8 @@
       "post_score_midduel": true,
       "cache_ttl": 60000,
       "no_match_mode": false,
-      "options": {
-        "apiKey": "123"
-      },
-      "tournament_id": "456",
-      "use_custom_module": false
+      "api_key": "123",
+      "tournament_id": "456"
     },
     "deck_log": {
       "enabled": false,
@@ -201,7 +198,6 @@
       "enabled": false,
       "deck_check": true,
       "deck_path": "./decks/",
-      "replay_safe": true,
       "replay_path": "./replays/",
       "replay_archive_tool": "7z",
       "block_replay_to_player": false,
@@ -220,7 +216,17 @@
         "source": "mycard-athletic"
       },
       "rankCount": 10,
+      "banCount": 0,
       "ttl": 600
+    },
+    "neos": {
+      "enabled": false,
+      "port": 7977,
+      "trusted_proxies": [
+        "127.0.0.1/8",
+        "::1/128"
+      ],
+      "ip_header": "x-forwarded-for"
     },
     "test_mode": {
       "watch_public_hand": false,
