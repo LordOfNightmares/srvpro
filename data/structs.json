@@ -42,6 +42,10 @@
         {"name": "gameid", "type": "unsigned int"},
         {"name": "pass", "type": "unsigned short", "length": 20, "encoding": "UTF-16LE"}
     ],
+    "CTOS_ExternalAddress": [
+        {"name": "real_ip", "type": "unsigned int"},
+        {"name": "hostname", "type": "unsigned short", "length":"256", "encoding": "UTF-16LE"}
+    ],
     "CTOS_Kick": [
         {"name": "pos", "type": "unsigned char"}
     ],
@@ -78,7 +82,8 @@
     ],
     "STOC_HS_PlayerEnter": [
         {"name": "name", "type": "unsigned short", "length": 20, "encoding": "UTF-16LE"},
-        {"name": "pos", "type": "unsigned char"}
+        {"name": "pos", "type": "unsigned char"},
+        {"name": "padding", "type": "unsigned char"}
     ],
     "STOC_HS_PlayerChange": [
         {"name": "status", "type": "unsigned char"}

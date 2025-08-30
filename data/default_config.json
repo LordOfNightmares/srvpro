@@ -16,7 +16,9 @@
     "draw_count": 1,
     "time_limit": 180,
     "no_watch": false,
-    "auto_death": false
+    "auto_death": false,
+    "bo5": false,
+    "sideins": false
   },
   "modules": {
     "welcome": "MyCard YGOPro Server",
@@ -26,10 +28,18 @@
     "full": "服务器已爆满",
     "max_rooms_count": 0,
     "side_timeout": false,
-    "tag_duel_surrender": true,
     "replay_delay": true,
     "hide_name": false,
     "display_watchers": false,
+    "trusted_proxies": [
+      "127.0.0.1/8",
+      "::1/128"
+    ],
+    "ygopro_path": "./ygopro",
+    "ygopro_exec_path": "./ygopro",
+    "expansions_path": [
+      "./expansions"
+    ],
     "i18n": {
       "auto_pick": false,
       "default": "zh-cn",
@@ -91,6 +101,7 @@
       "record_match_scores": false,
       "post_match_scores": false,
       "post_match_accesskey": "123456",
+      "disable_chat": false,
       "blank_pass_modes": {
         "S": true,
         "M": true,
@@ -164,7 +175,8 @@
       "cache_ttl": 60000,
       "no_match_mode": false,
       "api_key": "123",
-      "tournament_id": "456"
+      "tournament_id": "456",
+      "challonge_url": "https://api.challonge.com"
     },
     "deck_log": {
       "enabled": false,
@@ -205,6 +217,10 @@
       "show_ip": true,
       "show_info": true,
       "log_save_path": "./config/",
+      "deck_dashboard_min_deck": 40,
+      "deck_dashboard_max_deck": 60,
+      "deck_dashboard_max_extra": 15,
+      "deck_dashboard_max_side": 15,
       "port": 7933
     },
     "athletic_check": {
@@ -222,17 +238,17 @@
     "neos": {
       "enabled": false,
       "port": 7977,
-      "trusted_proxies": [
-        "127.0.0.1/8",
-        "::1/128"
-      ],
       "ip_header": "x-forwarded-for"
     },
     "chatgpt": {
       "enabled": false,
-      "endpoint": "https://chatgpt.hanatan.net",
-      "token": "hanatan",
-      "session": "srvpro"
+      "endpoint": "https://api.openai.com",
+      "token": "sk-xxxx",
+      "model": "gpt-4o-mini",
+      "system_prompt": "你是{{windbot}}，一名与{{player}}实时互动的游戏对手。你的回复应简短、有趣、贴合当前情境，增强玩家沉浸感。避免冗长解释或重复内容，保持自然流畅，并且每次回复不能超过100个字。",
+      "comment": "{{player}} and {{windbot}} will be replaced in the prompt",
+      "token_limit": 12000,
+      "extra_opts": {}
     },
     "test_mode": {
       "watch_public_hand": false,

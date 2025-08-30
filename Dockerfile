@@ -53,7 +53,7 @@ RUN git clone --branch=server --recursive --depth=1 https://code.mycard.moe/nana
 # windbot
 RUN git clone --depth=1 https://github.com/purerosefallen/windbot /tmp/windbot && \
     cd /tmp/windbot && \
-    xbuild /property:Configuration=Release /property:TargetFrameworkVersion="v4.5" && \
+    xbuild /property:Configuration=Release /property:TargetFrameworkVersion="v4.0" && \
     mv /tmp/windbot/bin/Release /ygopro-server/windbot && \
     cp -rf /ygopro-server/ygopro/cards.cdb /ygopro-server/windbot/ && \
     rm -rf /tmp/windbot

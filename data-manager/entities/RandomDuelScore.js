@@ -13,11 +13,6 @@ exports.RandomDuelScore = void 0;
 const typeorm_1 = require("typeorm");
 const CreateAndUpdateTimeBase_1 = require("./CreateAndUpdateTimeBase");
 let RandomDuelScore = class RandomDuelScore extends CreateAndUpdateTimeBase_1.CreateAndUpdateTimeBase {
-    name;
-    winCount;
-    loseCount;
-    fleeCount;
-    winCombo;
     getDisplayName() {
         return this.name.split("$")[0];
     }
@@ -33,8 +28,7 @@ let RandomDuelScore = class RandomDuelScore extends CreateAndUpdateTimeBase_1.Cr
         ++this.fleeCount;
         this.lose();
     }
-    getScoreText() {
-        const displayName = this.getDisplayName();
+    getScoreText(displayName) {
         const total = this.winCount + this.loseCount;
         if (this.winCount < 2 && total < 3) {
             return `${displayName} \${random_score_not_enough}`;
@@ -48,6 +42,7 @@ let RandomDuelScore = class RandomDuelScore extends CreateAndUpdateTimeBase_1.Cr
         }
     }
 };
+exports.RandomDuelScore = RandomDuelScore;
 __decorate([
     (0, typeorm_1.PrimaryColumn)({ type: "varchar", length: 20 }),
     __metadata("design:type", String)
@@ -71,8 +66,6 @@ __decorate([
     (0, typeorm_1.Column)("int", { unsigned: true, default: 0 }),
     __metadata("design:type", Number)
 ], RandomDuelScore.prototype, "winCombo", void 0);
-RandomDuelScore = __decorate([
+exports.RandomDuelScore = RandomDuelScore = __decorate([
     (0, typeorm_1.Entity)()
 ], RandomDuelScore);
-exports.RandomDuelScore = RandomDuelScore;
-//# sourceMappingURL=RandomDuelScore.js.map

@@ -9,20 +9,17 @@ const bunyan_1 = require("bunyan");
 const moment_1 = __importDefault(require("moment"));
 const p_queue_1 = __importDefault(require("p-queue"));
 class Challonge {
-    config;
     constructor(config) {
         this.config = config;
+        this.queue = new p_queue_1.default({ concurrency: 1 });
+        this.log = (0, bunyan_1.createLogger)({ name: 'challonge' });
     }
-    queue = new p_queue_1.default({ concurrency: 1 });
-    log = (0, bunyan_1.createLogger)({ name: 'challonge' });
-    previous;
-    previousTime;
     async getTournamentProcess(noCache = false) {
         if (!noCache && this.previous && this.previousTime.isAfter((0, moment_1.default)().subtract(this.config.cache_ttl, 'ms'))) {
             return this.previous;
         }
         try {
-            const { data: { tournament } } = await axios_1.default.get(`https://api.challonge.com/v1/tournaments/${this.config.tournament_id}.json`, {
+            const { data: { tournament } } = await axios_1.default.get(`${this.config.challonge_url}/v1/tournaments/${this.config.tournament_id}.json`, {
                 params: {
                     api_key: this.config.api_key,
                     include_participants: 1,
@@ -35,7 +32,7 @@ class Challonge {
             return tournament;
         }
         catch (e) {
-            this.log.error(`Failed to get tournament ${this.config.tournament_id}`, e);
+            this.log.error(`Failed to get tournament ${this.config.tournament_id}: ${e}`);
             return;
         }
     }
@@ -47,7 +44,7 @@ class Challonge {
     }
     async putScore(matchId, match, retried = 0) {
         try {
-            await axios_1.default.put(`https://api.challonge.com/v1/tournaments/${this.config.tournament_id}/matches/${matchId}.json`, {
+            await axios_1.default.put(`${this.config.challonge_url}/v1/tournaments/${this.config.tournament_id}/matches/${matchId}.json`, {
                 api_key: this.config.api_key,
                 match: match,
             });
@@ -56,7 +53,7 @@ class Challonge {
             return true;
         }
         catch (e) {
-            this.log.error(`Failed to put score for match ${matchId}`, e);
+            this.log.error(`Failed to put score for match ${matchId}: ${e}`);
             if (retried < 5) {
                 this.log.info(`Retrying match ${matchId}`);
                 return this.putScore(matchId, match, retried + 1);
@@ -67,6 +64,35 @@ class Challonge {
             }
         }
     }
+    // DELETE /v1/tournaments/${tournament_id}/participants/clear.json?api_key=xxx returns ANY
+    async clearParticipants() {
+        try {
+            await axios_1.default.delete(`${this.config.challonge_url}/v1/tournaments/${this.config.tournament_id}/participants/clear.json`, {
+                params: {
+                    api_key: this.config.api_key
+                },
+                validateStatus: () => true,
+            });
+            return true;
+        }
+        catch (e) {
+            this.log.error(`Failed to clear participants for tournament ${this.config.tournament_id}: ${e}`);
+            return false;
+        }
+    }
+    // POST /v1/tournaments/${tournament_id}/participants/bulk_add.json { api_key: string, participants: { name: string }[] } returns ANY
+    async uploadParticipants(participantNames) {
+        try {
+            await axios_1.default.post(`${this.config.challonge_url}/v1/tournaments/${this.config.tournament_id}/participants/bulk_add.json`, {
+                api_key: this.config.api_key,
+                participants: participantNames.map(name => ({ name })),
+            });
+            return true;
+        }
+        catch (e) {
+            this.log.error(`Failed to upload participants for tournament ${this.config.tournament_id}: ${e}`);
+            return false;
+        }
+    }
 }
 exports.Challonge = Challonge;
-//# sourceMappingURL=challonge.js.map
